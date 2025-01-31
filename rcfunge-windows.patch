@@ -1,0 +1,344 @@
+Only in new/: .vscode
+Only in new/: ~$funge.doc
+Only in new/: bin
+diff -ur old/ext/dirf.c new/ext/dirf.c
+--- old/ext/dirf.c	2010-04-16 23:30:38 +0000
++++ new/ext/dirf.c	2025-01-30 17:08:56 +0000
+@@ -43,7 +43,7 @@
+   char Buffer[1000];
+   switch (Cmd) {
+     case EX_DIRF+00:Pop_String(vm,Buffer);                           /*  M */
+-                    if (mkdir(Buffer,0700)!=0) Reflect(vm);
++                    if (mkdir(Buffer)!=0) Reflect(vm);
+                     break;
+     case EX_DIRF+01:Pop_String(vm,Buffer);                           /*  C */
+                     if (chdir(Buffer)!=0) Reflect(vm);
+diff -ur old/ext/rexp.c new/ext/rexp.c
+--- old/ext/rexp.c	2010-04-16 23:30:38 +0000
++++ new/ext/rexp.c	2025-01-30 19:48:12 +0000
+@@ -10,6 +10,7 @@
+ 
+ #ifdef REXP
+ #include <time.h>
++#include <regex.h>
+ #include "funge.h"
+ 
+ /* a0 b1 c2 d3 e4 f5 g6 h7 i8 j9 k10 l11 m12 n13 o14 p15 q16 r17 s18 t19
+@@ -65,13 +66,13 @@
+                       case REG_ECOLLATE:Push(vm,6); break;
+                       case REG_ECTYPE:Push(vm,7); break;
+ #ifndef OSX
+-                      case REG_EEND:Push(vm,8); break;
++                      /* case REG_EEND:Push(vm,8); break; */
+ #endif
+                       case REG_EESCAPE:Push(vm,9); break;
+                       case REG_EPAREN:Push(vm,10); break;
+                       case REG_ERANGE:Push(vm,11); break;
+ #ifndef OSX
+-                      case REG_ESIZE:Push(vm,12); break;
++                      /* case REG_ESIZE:Push(vm,12); break; */
+ #endif
+                       case REG_ESPACE:Push(vm,13); break;
+                       case REG_ESUBREG:Push(vm,14); break;
+diff -ur old/ext/sets.c new/ext/sets.c
+--- old/ext/sets.c	2010-04-16 23:30:38 +0000
++++ new/ext/sets.c	2025-01-30 19:45:42 +0000
+@@ -90,7 +90,7 @@
+   cip = vm->cip;
+   switch (Cmd) {
+     case EX_SETS+ 0:v = Pop(vm);                       /* SETS, A */
+-                    set = Pop_Set(vm,&count);
++                    set = Pop_Set(vm,(INT*)(&count));
+                     if (count < 0) {
+                       Reflect(vm);
+                       Push(vm,v);
+@@ -110,7 +110,7 @@
+                     Push_Set(vm,set,count);
+                     if (set != NULL) free(set);
+                     break;
+-    case EX_SETS+ 2:set = Pop_Set(vm,&count);          /* SETS, C */
++    case EX_SETS+ 2:set = Pop_Set(vm,(INT*)(&count));          /* SETS, C */
+                     if (count < 0) {
+                       Reflect(vm);
+                       return;
+@@ -119,7 +119,7 @@
+                     Push(vm,count);
+                     if (set != NULL) free(set);
+                     break;
+-    case EX_SETS+ 3:set = Pop_Set(vm,&count);          /* SETS, D */
++    case EX_SETS+ 3:set = Pop_Set(vm,(INT*)(&count));          /* SETS, D */
+                     if (count < 0) {
+                       Reflect(vm);
+                       return;
+@@ -153,12 +153,12 @@
+                     Push_Set(vm,set,count);
+                     if (set != NULL) free(set);
+                     break;
+-    case EX_SETS+ 8:set = Pop_Set(vm,&count);          /* SETS, I */
++    case EX_SETS+ 8:set = Pop_Set(vm,(INT*)(&count));          /* SETS, I */
+                     if (count < 0) {
+                       Reflect(vm);
+                       return;
+                       }
+-                    set2 = Pop_Set(vm,&count2);
++                    set2 = Pop_Set(vm,(INT*)(&count2));
+                     if (count2 < 0) {
+                       Reflect(vm);
+                       Push_Set(vm,set,count);
+@@ -186,7 +186,7 @@
+                     if (set3 != NULL) free(set3);
+                     break;
+     case EX_SETS+12:v = Pop(vm);                       /* SETS, M */
+-                    set = Pop_Set(vm,&count);
++                    set = Pop_Set(vm,(INT*)(&count));
+                     if (count < 0) {
+                       Reflect(vm);
+                       Push(vm,v);
+@@ -207,7 +207,7 @@
+                       Reflect(vm);
+                       return;
+                       }
+-                    set = Pop_Set(vm,&count);
++                    set = Pop_Set(vm,(INT*)(&count));
+                     if (count < 0) {
+                       Reflect(vm);
+                       return;
+@@ -222,7 +222,7 @@
+                     if (set != NULL) free(set);
+                     break;
+     case EX_SETS+17:v = Pop(vm);                       /* SETS, R */
+-                    set = Pop_Set(vm,&count);
++                    set = Pop_Set(vm,(INT*)(&count));
+                     if (count < 0) {
+                       Reflect(vm);
+                       Push(vm,v);
+@@ -239,12 +239,12 @@
+                     Push_Set(vm,set,count);
+                     if (set != NULL) free(set);
+                     break;
+-    case EX_SETS+18:set2 = Pop_Set(vm,&count2);          /* SETS, S */
++    case EX_SETS+18:set2 = Pop_Set(vm,(INT*)(&count2));          /* SETS, S */
+                     if (count < 0) {
+                       Reflect(vm);
+                       return;
+                       }
+-                    set = Pop_Set(vm,&count);
++                    set = Pop_Set(vm,(INT*)(&count));
+                     if (count < 0) {
+                       Reflect(vm);
+                       Push_Set(vm,set2,count);
+@@ -264,12 +264,12 @@
+                     Push_Set(vm,set,count);
+                     if (set != NULL) free(set);
+                     break;
+-    case EX_SETS+20:set = Pop_Set(vm,&count);          /* SETS, U */
++    case EX_SETS+20:set = Pop_Set(vm,(INT*)(&count));          /* SETS, U */
+                     if (count < 0) {
+                       Reflect(vm);
+                       return;
+                       }
+-                    set2 = Pop_Set(vm,&count2);
++                    set2 = Pop_Set(vm,(INT*)(&count2));
+                     if (count2 < 0) {
+                       Reflect(vm);
+                       Push_Set(vm,set,count);
+@@ -312,7 +312,7 @@
+                     if (vm->Mode > 1) dy=Pop(vm);
+                       else dy=0;
+                     dx=Pop(vm);
+-                    set = Pop_Set(vm,&count);
++                    set = Pop_Set(vm,(INT*)(&count));
+                     if (count < 0) {
+                       Reflect(vm);
+                       return;
+@@ -326,12 +326,12 @@
+                       }
+                     if (set != NULL) free(set);
+                     break;
+-    case EX_SETS+23:set = Pop_Set(vm,&count);          /* SETS, X */
++    case EX_SETS+23:set = Pop_Set(vm,(INT*)(&count));          /* SETS, X */
+                     if (count < 0) {
+                       Reflect(vm);
+                       return;
+                       }
+-                    set2 = Pop_Set(vm,&count2);
++                    set2 = Pop_Set(vm,(INT*)(&count2));
+                     if (count2 < 0) {
+                       Reflect(vm);
+                       Push_Set(vm,set,count);
+@@ -343,7 +343,7 @@
+                     if (set != NULL) free(set);
+                     if (set2 != NULL) free(set2);
+                     break;
+-    case EX_SETS+25:set = Pop_Set(vm,&count);          /* SETS, Z */
++    case EX_SETS+25:set = Pop_Set(vm,(INT*)(&count));          /* SETS, Z */
+                     if (count < 0) {
+                       Reflect(vm);
+                       return;
+Only in new/: funge-cygwin.exe
+Only in new/: funge.exe
+diff -ur old/funge.h new/funge.h
+--- old/funge.h	2010-04-16 23:30:38 +0000
++++ new/funge.h	2025-01-30 19:37:51 +0000
+@@ -4,7 +4,7 @@
+ #include <math.h>
+ #include <string.h>
+ #include <regex.h>
+-#include <sys/types.h>
++#include <stdint.h>
+ 
+ typedef unsigned char byte;
+ 
+@@ -24,7 +24,7 @@
+ 
+ #define INT int32_t
+ #define DINT long long
+-#define UINT u_int32_t
++#define UINT uint32_t
+ 
+ #define VERSION      "2.03.00"
+ #define VERSIONINT   20300
+@@ -421,6 +421,8 @@
+ PREFIX void Copy_Backing(INT w);
+ #endif
+ 
++extern FILE* __imp__iob();
++
+ extern int Debug(VM* vm,int cell);
+ extern void SwapFingerprint(VM* vm,int dest,int src);
+ extern void CopyFingerprint(VM* vm,int dest,int src);
+diff -ur old/main.c new/main.c
+--- old/main.c	2010-04-16 23:30:38 +0000
++++ new/main.c	2025-01-30 19:18:21 +0000
+@@ -15,6 +15,18 @@
+ #include <fcntl.h>
+ #include "funge.h"
+ 
++/* Fix some weird error with __imp__iob */
++
++FILE iob[3];
++char iob_initialized = 0;
++FILE* __cdecl __imp__iob() {
++  if (!iob_initialized) {
++    iob[0] = *stdin; iob[1] = *stdout; iob[2] = *stderr;
++    iob_initialized = 1;
++  }
++  return iob;
++}
++
+ /* ************************************************************* */
+ /* **** This function copies the stack of one IP to another **** */
+ /* ************************************************************* */
+diff -ur old/Makefile new/Makefile
+--- old/Makefile	2010-04-16 23:30:38 +0000
++++ new/Makefile	2025-01-30 19:53:33 +0000
+@@ -11,11 +11,11 @@
+ 
+ DEFINES=-DBASE -DCPLI -DDIRF -DEVAR -DFILS -DFNGR -DFPDP -DFPSP -DFRTH -DFNUL\
+         -DFIXP -DHRTI -DIMAP -DIIPC -DINDV -DMODE -DMODU -DORTH -DPERL -DREFC\
+-        -DROMA -DSOCK -DSTRN -DSUBR -DTIME -DTRDS -DTERM -DWIND -DSP3D -DTRGR\
+-        -DTURT -DTOYS -DSTCK -DLONG -DSETS -DJSTR -DEXEC -DEMEM -DMACR -DFING\
+-        -DREXP -DMSGQ -DSMEM -DSMPH -DPNTR -DDATE -DMVRS -DARRY -DRAND -DFPRT \
+-	-DNCRS -DFOBJ -DSORT -DICAL -DSCKE -DIMTH -DBOOL -DFORK -DSGNE\
+-	-DIPMD -DUNIX\
++        -DROMA -DSTRN -DSUBR -DTIME -DTRDS -DSP3D -DTRGR\
++        -DTOYS -DSTCK -DLONG -DSETS -DJSTR -DEXEC -DEMEM -DMACR -DFING\
++        -DPNTR -DDATE -DMVRS -DARRY -DRAND -DFPRT \
++	-DFOBJ -DSORT -DICAL -DIMTH -DBOOL \
++	-DIPMD \
+ 	-D$(PLATFORM) -Wall
+ 
+ # solaris
+@@ -30,10 +30,14 @@
+ # PLATFORM=UNIX
+ 
+ # OSX
+-LIBPATH = -L/usr/X11/lib/
+-INCPATH = -I /usr/X11/include
+-LIBS = -lm -lX11 -lncurses
+-PLATFORM=OSX
++# LIBPATH = -L/usr/X11/lib/
++# INCPATH = -I /usr/X11/include
++# LIBS = -lm -lX11 -lncurses
++# PLATFORM=OSX
++
++# Windows
++PLATFORM=MSWIN
++LIBPATH= -lregex
+ 
+ OBJECTS=./bin/main.o\
+ 	./bin/ip.o\
+@@ -41,7 +45,6 @@
+         ./bin/ext.o\
+         ./bin/mterm.o\
+         ./bin/dyfp.o\
+-        ./bin/xfunge.o\
+         ./bin/mem.o\
+         ./bin/debugger.o\
+         ./bin/stack.o\
+@@ -57,7 +60,6 @@
+         ./bin/fixp.o\
+         ./bin/fngr.o\
+         ./bin/fobj.o\
+-        ./bin/fork.o\
+         ./bin/fpdp.o\
+         ./bin/fprt.o\
+         ./bin/fpsp.o\
+@@ -70,27 +72,19 @@
+         ./bin/ipmd.o\
+         ./bin/mode.o\
+         ./bin/modu.o\
+-        ./bin/ncrs.o\
+         ./bin/orth.o\
+         ./bin/perl.o\
+         ./bin/indv.o\
+         ./bin/rand.o\
+         ./bin/refc.o\
+         ./bin/roma.o\
+-        ./bin/sgne.o\
+-        ./bin/sgnl.o\
+         ./bin/strn.o\
+-        ./bin/sock.o\
+-        ./bin/scke.o\
+         ./bin/subr.o\
+         ./bin/time.o\
+         ./bin/trds.o\
+-        ./bin/term.o\
+         ./bin/toys.o\
+-        ./bin/wind.o\
+         ./bin/3dsp.o\
+         ./bin/fing.o\
+-	./bin/turt.o\
+         ./bin/stck.o\
+         ./bin/long.o\
+         ./bin/sets.o\
+@@ -100,15 +94,10 @@
+         ./bin/emem.o\
+         ./bin/macr.o\
+         ./bin/trgr.o\
+-        ./bin/rexp.o\
+-	./bin/msgq.o\
+-        ./bin/smem.o\
+-        ./bin/smph.o\
+-        ./bin/unix.o\
+ 	./bin/mvrs.o
+ 
+ $(PROJECT):$(OBJECTS)
+-	$(CC) $(LIBPATH) $(OBJECTS) $(LIBS) -o $(PROJECT)
++	$(CC) $(LIBPATH) $(OBJECTS) $(LIBS) -o $(PROJECT) -std=gnu99
+ 
+ ./bin/main.o:	main.c funge.h
+ 	$(CC) $(DEFINES) -c main.c -o ./bin/main.o
+diff -ur old/vm.c new/vm.c
+--- old/vm.c	2010-04-16 23:30:38 +0000
++++ new/vm.c	2025-01-30 19:19:49 +0000
+@@ -1131,7 +1131,8 @@
+     if (Ret == 1) i--;
+     }
+   if (vms[vm].StopTime==-1) vms[vm].CycleCount++;
+-fflush(stdout);
++/* This causes the I/O to be blank and makes the terminal glitch in Windows */
++/*fflush(stdout);*/
+ }
+ 
+ 
